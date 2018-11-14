@@ -1,0 +1,28 @@
+{
+  "name": "cordova-plugin-jj2000",
+  "version": "1.0.0",
+  "description": "Cordova Plugin JJ2000",
+  "main": "./www/jj2000.js",
+  "cordova": {
+    "id": "cordova-plugin-jj2000",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gridler/cordova-plugin-jj2000.git"
+  },
+  "keywords": [
+    "cordova",
+    "bluetooth",
+    "ble",
+    "ecosystem:cordova"
+  ],
+  "author": "Gridler <developer@gridler.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Gridler/cordova-plugin-jj2000/issues"
+  },
+  "homepage": "https://github.com/Gridler/cordova-plugin-jj2000#readme"
+}

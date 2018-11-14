@@ -1,0 +1,58 @@
+{
+  "_from": "cordova-plugin-imatch",
+  "_id": "cordova-plugin-imatch@1.0.2",
+  "_inBundle": false,
+  "_integrity": "sha512-3KCdPfijoPjRM5+pdftQVsuhhNiuCs+MKvT5ZUyKWVSkr8Dcm3NIfogVCVWOclZEQgUo7Nv3ry25/98xy2fTNQ==",
+  "_location": "/cordova-plugin-imatch",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "cordova-plugin-imatch",
+    "name": "cordova-plugin-imatch",
+    "escapedName": "cordova-plugin-imatch",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/cordova-plugin-imatch/-/cordova-plugin-imatch-1.0.2.tgz",
+  "_shasum": "120650fb54094d839a9f8b1e9fc3199b0bd8ad26",
+  "_spec": "cordova-plugin-imatch",
+  "_where": "C:\\Users\\m.schulte\\source\\repos\\iMatch\\src\\Cordova\\iMatchDemo",
+  "author": {
+    "name": "Gridler",
+    "email": "developer@gridler.com"
+  },
+  "bugs": {
+    "url": "https://github.com/Gridler/cordova-plugin-imatch/issues"
+  },
+  "bundleDependencies": false,
+  "cordova": {
+    "id": "cordova-plugin-imatch",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "deprecated": false,
+  "description": "Gridler iMatch Plugin",
+  "homepage": "https://github.com/Gridler/cordova-plugin-imatch#readme",
+  "keywords": [
+    "cordova",
+    "bluetooth",
+    "ble",
+    "ecosystem:cordova"
+  ],
+  "license": "Apache-2.0",
+  "main": "./www/iMatch.js",
+  "name": "cordova-plugin-imatch",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gridler/cordova-plugin-imatch.git"
+  },
+  "version": "1.0.2"
+}

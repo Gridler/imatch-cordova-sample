@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta name="format-detection" content="telephone=yes">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <title>iMatch Cordova Demo</title>
+    </head>
+
+    <body>
+        <div class="app">
+            <h1>Gridler iMatch Cordova Demo</h1>
+            <div id="ui">
+                <button id="connectButton">Connect</button>
+                <button id="syncButton">Sync Date</button>
+                <button id="batteryButton">Get Battery</button>
+                <button id="fingerButton">FPR</button>
+                <button id="smartcardButton">SCR</button>
+                <button id="nfcButton">NFC</button>
+            </div>
+        <div id="message">Searching iMatch devices..</div>
+        </div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/moment.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/mrz/index.js"></script>
+        <script>
+            app.initialize();
+        </script>
+    </body>
+</html>
