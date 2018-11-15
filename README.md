@@ -1,5 +1,5 @@
 # imatch-cordova-sample
-Sample Cordova app for the Girdler iMatch.
+Sample Cordova app for the [Gridler iMatch](https://imatch.gridler.com/).
 
 ## Run
 ```
