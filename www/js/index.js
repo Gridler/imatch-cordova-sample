@@ -89,11 +89,22 @@ var app = {
                         results[i].uuid,  // device to connect to
                         function(success) {
                             iMatch.subscribe(function (data) {
-                                app.display(data);
+                                var message = JSON.parse(data);
+                                if (message.method === "info")
+                                {
+                                    app.display("Firmware " + message.data.version);
+                                }
+                                else if (message.method === "status")
+                                {
+                                    app.display("Battery: " + message.data.cv);
+                                }
                             },function (error) {
                                 app.display(JSON.stringify(error));
                             });
                             app.display("Connected to " + results[i].uuid);
+                            
+                            // get the firmware version running on the connected device
+                            iMatch.write({imatch: "1.0", device: "sys", method: "info", params: ""});
                         },
                         function(error) {
                             console.log('Connect failed');
