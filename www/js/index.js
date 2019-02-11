@@ -1,6 +1,4 @@
 var app = {
-    iMatchDevice: [],  // get the mac address from iMatch.list
-
     /*
         Application constructor
     */
@@ -10,25 +8,24 @@ var app = {
     },
 
     /*
-        bind any events that are required on startup to listeners:
+        bind any events that are required on startup to listeners
     */
     bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-        connectButton.addEventListener('touchend', app.manageConnection, false);
+        document.addEventListener('deviceready', app.start, false);
+        connectButton.addEventListener('touchend', app.start, false);
         syncButton.addEventListener('touchend', app.sync, false);
         batteryButton.addEventListener('touchend', app.batteryButtonPressed, false);
+        updateButton.addEventListener('touchend', app.updateButtonPressed, false);
         fingerButton.addEventListener('touchend', app.fingerButtonPressed, false);
         nfcButton.addEventListener('touchend', app.nfcButtonPressed, false);
         smartcardButton.addEventListener('touchend', app.smartcardButtonPressed, false);
     },
 
     /*
-        this runs when the device is ready for user interaction:
+        this runs when the device is ready for user interaction
     */
-    onDeviceReady: function() {
-        // check to see if Bluetooth is turned on.
-
-        // check if Bluetooth is on:
+    start: function() {
+        // check if Bluetooth is turned on
         app.isNFCEnabled(
             function(success) {
                 app.open();
@@ -40,44 +37,7 @@ var app = {
     },
 
     /*
-        Connects if not connected, and disconnects if connected:
-    */
-    manageConnection: function() {
-        // connect() will get called only if isConnected() (below)
-        // returns failure. In other words, if not connected, then connect:
-        var connect = function () {
-            // if not connected, do this:
-            // clear the screen and display an attempt to connect
-            app.clear();
-            app.display("Attempting to connect..");
-            // attempt to connect:
-            iMatch.connect(
-                app.iMatchDevice.id,  // device to connect to
-                app.openPort,    // start listening if you succeed
-                function(error) {
-                    app.showError(error);    // show the error if you fail
-                    app.open();
-                }
-            );
-        };
-
-        // disconnect() will get called only if isConnected() (below)
-        // returns success  In other words, if  connected, then disconnect:
-        var disconnect = function () {
-            app.display("Attempting to disconnect");
-            // if connected, do this:
-            iMatch.disconnect(
-                app.closePort,     // stop listening to the port
-                app.showError      // show the error if you fail
-            );
-        };
-
-        // here's the real action of the manageConnection function:
-        iMatch.isConnected(disconnect, connect);
-    },
-
-    /*
-        Lists BT devices in range:
+        Lists BT devices in range
     */
     open: function() {
         iMatch.list(
@@ -118,22 +78,6 @@ var app = {
                 app.display(JSON.stringify(error));
             }
         );
-    },
-
-    bindEvent: function(event, callback){
-
-    },
-
-    /*
-        subscribes to a Bluetooth serial listener for newline
-        and changes the button:
-    */
-    openPort: function() {
-        // if you get a good Bluetooth serial connection:
-        app.clear();
-        app.display("Connected to: " + app.iMatchDevice.name + " - " + app.iMatchDevice.uuid);
-        // change the button's name:
-        connectButton.innerHTML = "Disconnect";
     },
 
     /*
@@ -349,21 +293,149 @@ var app = {
         iMatch.write({imatch: "1.0", device: "nfc", method: "mrtdread", params: mrzLines});
     },
 
+
     /*
-    unsubscribes from any Bluetooth serial listener and changes the button:
+        get the device's firmware version and update if different to the version in the app
     */
-    closePort: function() {
-        // if you get a good Bluetooth serial connection:
-        app.clear();
-        app.display("Disconnected from: " + app.iMatchDevice.name + " - " + app.iMatchDevice.uuid);
-        // change the button's name:
-        connectButton.innerHTML = "Connect";
-        // unsubscribe from listening:
-        iMatch.unsubscribe();
+    updateButtonPressed: function() {
+        iMatch.subscribe(function (data) {
+            app.display("data " + data);
+            var message = JSON.parse(data);
+            if (message.method === "info")
+            {
+                app.fastflash = message.data.fastflash;
+                var version = message.data.version.substring(1, 8);
+                app.display("FW: " + message.data.version);
+                app.display("Fastflash: " + message.data.fastflash);
+
+                if (version !== "1.9.4.8")
+                {
+                    window.resolveLocalFileSystemURL(cordova.file.applicationDirectory + "www/fw/firmware.bin",
+                        function(fileEntry) {
+                            fileEntry.file(function (file) {                
+                                var reader = new FileReader();
+                                reader.onloadend = function () {          
+                                    var firmware = new Uint8Array(this.result)
+                                    app.updateFirmware(firmware);
+                                }
+                                reader.readAsArrayBuffer(file);                
+                            }, function(error) {
+                                app.display("File error: " + JSON.stringify(error));
+                            });   
+                        }, function(error) {
+                            app.display("File error: " + JSON.stringify(error));
+                    });
+                }
+            }
+            
+        }, function (error) {
+            console.log("getBatteryLevel error: " + error);
+        });
+        
+        // get the firmware version running on the connected device
+        iMatch.write({imatch: "1.0", device: "sys", method: "info", params: ""});
     },
 
     /*
-        appends @error to the message div:
+        update the firmware on the device
+    */
+    updateFirmware: async function(firmware) {
+        // calculate the CRC
+        crc.initialize();
+        checksum = ~~crc.calculate(firmware);
+
+        var display = document.getElementById("message");
+
+        if (app.fastflash) {
+            // put the device in firmware update mode to start receiving raw bytes
+            var res = await app.writeWithResponse({imatch: "1.0", device: "sys", method: "firmware_update", params: firmware.length + "," + checksum + ",0"});
+
+            var bufferSize = 256;  
+            for (i = 0; i < firmware.length; i += bufferSize) {
+                var buffer;
+                if (i + bufferSize > firmware.length) {
+                    buffer = firmware.subarray(i, firmware.length);
+                    i = firmware.length;
+                } else {
+                    buffer = firmware.subarray(i, i + bufferSize);
+                }
+
+                var binary = '';
+                for (var b = 0; b < buffer.byteLength; b++) {
+                    binary += String.fromCharCode(buffer[b]);
+                }
+                var b64Buffer = window.btoa(binary);
+                
+                iMatch.writeBytes(b64Buffer);  
+                await app.sleep(26);
+                
+                var progressPercent = Math.round(i / firmware.length * 100) + '%';
+                var progressDetails = '(' + i + 'B / ' + firmware.length + 'B)';
+                display.innerHTML = '<progress max="' + firmware.length + '" value="' + i + '"></progress><div>' + progressPercent + ' ' + progressDetails + '</div>';
+            }
+            
+            app.sleep(15000).then(() =>  {
+                app.start();
+            });
+        }
+        else {
+            var bufferSize = 128;
+            for (i = 0; i < firmware.length; i += bufferSize) {
+                var buffer;
+                if (i + bufferSize > firmware.length) {
+                    buffer = firmware.subarray(i, firmware.length);
+                    i = firmware.length;
+                } else {
+                    buffer = firmware.subarray(i, i + bufferSize);
+                }
+
+                var binary = '';
+                for (var b = 0; b < buffer.byteLength; b++) {
+                    binary += String.fromCharCode(buffer[b]);
+                }
+                var b64Buffer = window.btoa(binary);
+                var res = await app.writeWithResponse({imatch: "1.0", device: "sys", method: "flash", params: b64Buffer});
+
+                var progressPercent = Math.round(i / firmware.length * 100) + '%';
+                var progressDetails = '(' + i + 'B / ' + firmware.length + 'B)';
+                display.innerHTML = '<progress max="' + firmware.length + '" value="' + i + '"></progress><div>' + progressPercent + ' ' + progressDetails + '</div>';
+
+                if (res.data != "AA==")
+                {
+                    app.display("Error: " + res);
+                    return;
+                }
+            }
+
+            iMatch.subscribe(function (data) {
+                app.display("Firmware updated: " + data);
+
+                // restart to load the new firmware
+                iMatch.write({imatch: "1.0", device: "sys", method: "restart", params: ""});    
+
+                app.sleep(15000).then(() =>  {
+                    app.start();
+                });
+            }, function (error) {
+                app.display("Firmware update error: " + error);
+            });
+            iMatch.write({imatch: "1.0", device: "sys", method: "flash_loaded", params: firmware.length + "," + checksum + ",0"});  
+        }
+    },
+
+    writeWithResponse: function(message) {
+        return new Promise(function (resolve) {
+            iMatch.subscribe(function (response) {
+                resolve(JSON.parse(response));
+            }, function (error) {
+                resolve(JSON.parse(error));
+            });
+            iMatch.write(message);    
+        });
+    },
+
+    /*
+        appends @error to the message div
     */
     showError: function(error) {
         app.clear();
@@ -371,14 +443,14 @@ var app = {
     },
 
     /*
-        sleep for a while:
+        sleep for a while
     */
     sleep: function(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     },
 
     /*
-        appends @message to the message div:
+        appends @message to the message div
     */
     display: function(message) {
         var display = document.getElementById("message"), // the message div
@@ -390,7 +462,7 @@ var app = {
     },
 
     /*
-        clears the message div:
+        clears the message div
     */
     clear: function() {
         var display = document.getElementById("message");
