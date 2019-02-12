@@ -367,7 +367,7 @@ var app = {
                 var b64Buffer = window.btoa(binary);
                 
                 iMatch.writeBytes(b64Buffer);  
-                await app.sleep(26);
+                await app.sleep(50);
                 
                 var progressPercent = Math.round(i / firmware.length * 100) + '%';
                 var progressDetails = '(' + i + 'B / ' + firmware.length + 'B)';
