@@ -67,8 +67,7 @@ var app = {
                             iMatch.write({imatch: "1.0", device: "sys", method: "info", params: ""});
                         },
                         function(error) {
-                            console.log('Connect failed');
-                            app.display('Connect failed');
+                            app.display('Connection: ' + error);
                         }
                     );
                     break;
