@@ -255,8 +255,6 @@ var app = {
         read the mrtd with mrz
     */
     scanPassport: function(mrzLines, callback){
-        var passportData = {};
-
         iMatch.subscribe(function (data) {
             var iMatchMessage = JSON.parse(data);
 
@@ -281,6 +279,10 @@ var app = {
                     alert('photo conversion failed');
                 });
             }
+            else if (iMatchMessage.method == 'apdu_log')
+            {
+                callback('NFC.' + iMatchMessage.method + ': ' + iMatchMessage.data);
+            }
             else
             {
                 callback('NFC.' + iMatchMessage.method + ': ' + atob(iMatchMessage.data).length + ' bytes');
@@ -289,10 +291,15 @@ var app = {
         }, function (error) {
             console.log("scanPassport error: " + error);
         });
+        
+        var bypassPace = '0';
+        var checkMAC = '1';
+        var includeHeaders = '1';
+        var apduLogging = '0';
+        var mrtdParams = mrzLines + ',' + bypassPace + ',' + checkMAC + ',' + includeHeaders + ',' + apduLogging;
 
-        iMatch.write({imatch: "1.0", device: "nfc", method: "mrtdread", params: mrzLines});
+        iMatch.write({imatch: "1.0", device: "nfc", method: "mrtdread", params: mrtdParams});
     },
-
 
     /*
         get the device's firmware version and update if different to the version in the app
