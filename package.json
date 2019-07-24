@@ -10,7 +10,6 @@
   "author": "Gridler",
   "license": "Apache-2.0",
   "dependencies": {
-    "cordova-android": "^7.1.4",
     "cordova-ios": "^4.5.4",
     "cordova-plugin-file": "^6.0.1",
     "cordova-plugin-imatch": "^1.0.7",
@@ -24,8 +23,6 @@
       "cordova-plugin-jj2000": {},
       "cordova-plugin-file": {}
     },
-    "platforms": [
-      "android"
-    ]
+    "platforms": []
   }
 }

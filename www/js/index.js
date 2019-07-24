@@ -13,6 +13,7 @@ var app = {
     bindEvents: function() {
         document.addEventListener('deviceready', app.start, false);
         connectButton.addEventListener('touchend', app.start, false);
+        disconnectButton.addEventListener('touchend', app.diconnect, false);
         syncButton.addEventListener('touchend', app.sync, false);
         batteryButton.addEventListener('touchend', app.batteryButtonPressed, false);
         updateButton.addEventListener('touchend', app.updateButtonPressed, false);
@@ -32,6 +33,18 @@ var app = {
             },
             function(error) {
                 app.display("Bluetooth is not enabled.")
+            }
+        );
+    },
+    
+    diconnect: function() {
+        // check if Bluetooth is turned on
+        iMatch.disconnect(
+            function(success) {
+                app.display("disconnect success: " + success);
+            },
+            function(error) {
+                app.display("disconnect error: " + error);
             }
         );
     },
@@ -254,24 +267,12 @@ var app = {
                     callback('BAC failed: ' + iMatchMessage.data);
                 }
             }
-            else if (iMatchMessage.method == 'read_sod')
-            {
-            }
-            else if (iMatchMessage.method == 'read_dg1')
-            {
-                var dg1 = atob(iMatchMessage.data).substring(3,47) + atob(iMatchMessage.data).substring(47);
-                passportData = mrz.parseMRZ(dg1);
-                callback(JSON.stringify(passportData));
-            }
             else if (iMatchMessage.method == 'read_dg2')
             {
                 jj2000.convertJJ2000(iMatchMessage.data, function(photo) {
                     var image = new Image();
                     image.addEventListener('load', function() {
-                        passportData.bitmapWidth = image.width;
-                        passportData.bitmapHeight = image.height;
-                        passportData.bitmap = atob(iMatchMessage.data).length;
-                        callback(JSON.stringify(passportData));
+                        callback('NFC.read_dg2: ' + atob(iMatchMessage.data).length + ' bytes, width: ' + image.width + ', height: ' + image.height);
                     });
 
                     image.src = 'data:image/jpg;base64,' + photo;
